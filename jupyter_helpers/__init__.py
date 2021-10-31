@@ -5,6 +5,7 @@ from pathlib import Path
 import os
 import multiprocessing as mp
 import subprocess as sp
+import re
 
 
 # GLOBALS
@@ -69,13 +70,15 @@ def init(spacy=False, packages=True, processors=True, full=False):
 # Drive functions
 def zcat(inp, out):
     with gzip.open(inp, 'rb') as fi, open(out, 'wb') as oi:
-        while data := fi.read(8192):
+        data = True
+        while data:
+            data = fi.read(8192)
             oi.write(data)
 
 
 def _get_remote(remote_path, extract=True):
     remote_name = remote_path.name
-    name = remote_name.removesuffix('.gz').removesuffix('.tar')
+    name = re.sub(r'(\.gz|\.tar)+$', '', remote_name)
     local_path = Path(name).absolute()
 
     if extract:
