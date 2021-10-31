@@ -99,6 +99,7 @@ def _get_remote(remote_path, extract=True):
 
     if extract:
         if remote_name.endswith('.tar.gz'):
+            local_path.mkdir(parents=True, exist_ok=True)
             untar(remote_path, local_path)
         elif remote_name.endswith('.gz'):
             # zcat(remote_path, local_path)
