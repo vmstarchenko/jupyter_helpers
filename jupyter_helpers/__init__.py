@@ -71,8 +71,13 @@ def init(spacy=False, packages=True, processors=True, full=False):
         init_processors()
     if full or packages:
         init_packages()
+
+    from google.colab import drive
+    drive.mount('/content/drive')
+
     if full or spacy:
         init_spacy(spacy if spacy else [])
+
 
 
 # Drive functions
