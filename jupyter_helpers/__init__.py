@@ -63,7 +63,7 @@ def init_spacy(models):
         spacy.require_gpu()
 
     for name in models:
-        untar(REMOTE_SPACY_DIR / name, SPACY_DIR)
+        untar(SPACY_REMOTE_DIR / name, SPACY_DIR)
 
 
 def init(spacy=False, packages=True, processors=True, full=False):
