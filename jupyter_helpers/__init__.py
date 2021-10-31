@@ -21,8 +21,8 @@ RUNTIME = None
 
 
 def pip_install(packages):
-    packages = packages.split(' ') if isinstance(packages, str), packages
-    subprocess.check_call([
+    packages = packages.split(' ') if isinstance(packages, str) else packages
+    sp.check_call([
         sys.executable, '-m', 'pip', 'install', '-U', '-q',
         *packages
     ])
