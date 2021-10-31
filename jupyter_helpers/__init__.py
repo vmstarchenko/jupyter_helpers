@@ -14,6 +14,9 @@ DATASETS_DIR = DRIVE_DIR / 'datasets'
 MODELS_DIR = DRIVE_DIR / 'models'
 LOGS_DIR = DRIVE_DIR / 'tb_logs'
 
+SPACY_DIR = Path('.spacy').resolve()
+SPACY_DIR.mkdir(exist_ok=True)
+SPACY_REMOTE_DIR = MODELS_DIR / 'spacy'
 
 TPU_COUNT = 0
 GPU_COUNT = int(os.getenv('COLAB_GPU', 0))
@@ -48,14 +51,19 @@ def init_processors():
 
 
 def init_packages():
+    print('Init packages')
     pip_install('spacy spacy-transformers')
 
 
-def init_spacy():
+def init_spacy(models):
+    print('Init spacy')
     import spacy
     import spacy_transformers
     if GPU_COUNT:
         spacy.require_gpu()
+
+    for name in models:
+        untar(REMOTE_SPACY_DIR / name, SPACY_DIR):
 
 
 def init(spacy=False, packages=True, processors=True, full=False):
@@ -64,7 +72,7 @@ def init(spacy=False, packages=True, processors=True, full=False):
     if full or packages:
         init_packages()
     if full or spacy:
-        init_spacy()
+        init_spacy(spacy if spacy else [])
 
 
 # Drive functions
@@ -75,6 +83,9 @@ def zcat(inp, out):
             data = fi.read(8192)
             oi.write(data)
 
+def untar(inp, out):
+    sp.check_call(['tar', '-xzf', str(inp), '-C', str(out)])
+
 
 def _get_remote(remote_path, extract=True):
     remote_name = remote_path.name
@@ -83,7 +94,7 @@ def _get_remote(remote_path, extract=True):
 
     if extract:
         if remote_name.endswith('.tar.gz'):
-            sp.check_call(['tar', '-xzf', remote_path, '-C', local_path])
+            untar(remote_path, local_path)
         elif remote_name.endswith('.gz'):
             # zcat(remote_path, local_path)
             with local_path.open('wb') as f:
