@@ -1,6 +1,8 @@
 import sys
 import io
 import json
+import dataclasses
+import functools
 from pathlib import Path
 import os
 import multiprocessing as mp
@@ -97,7 +99,7 @@ def _get_remote(remote_path, extract=True):
     name = re.sub(r'(\.gz|\.tar)+$', '', remote_name)
     local_path = Path(name).absolute()
 
-    if extract:
+    if extract and remote_name.exists():
         if remote_name.endswith('.tar.gz'):
             local_path.mkdir(parents=True, exist_ok=True)
             untar(remote_path, local_path)
@@ -118,17 +120,26 @@ def get_model(remote_name, extract=True):
 
 
 # Common functions
-def write_jsonl(f, generator):
+
+class JSONEncoder(json.JSONEncoder):
+    def default(self, o):
+        if dataclasses.is_dataclass(o):
+            return dataclasses.asdict(o)
+        return super().default(o)
+
+DUMPS = functools.partial(json.dumps, cls=JSONEncoder)
+
+def write_jsonl(f, generator, dumps=None):
     if isinstance(f, io.IOBase):
-        _write_jsonl(f, generator)
+        _write_jsonl(f, generator, dumps)
     else:
         with open(f, 'w') as f:
-            _write_jsonl(f, generator)
+            _write_jsonl(f, generator, dumps)
 
-def _write_jsonl(f, generator):
-    print(2)
+def _write_jsonl(f, generator, dumps):
+    dumps = dumps or DUMPS
     for line in generator:
-        f.write(json.dumps(line, ensure_ascii=False, sort_keys=True))
+        f.write(dumps(line, ensure_ascii=False, sort_keys=True))
         f.write('\n')
 
 def read_jsonl(f):
